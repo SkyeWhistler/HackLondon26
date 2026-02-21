@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Knowunity Streak Stars</title>
+    <style>
+        :root { --know-yellow: #fff9e6; --know-orange: #ffa500; --circle-empty: #e0e0e0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        
+        .streak-card { 
+            background: var(--know-yellow); 
+            padding: 50px; 
+            border-radius: 30px; 
+            text-align: center; 
+            position: relative; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
+            width: 400px; 
+        }
+        
+        h2 { color: #333; margin-bottom: 5px; font-size: 22px; }
+
+        .streak-stats {
+            font-size: 20px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        #day-number {
+            color: var(--know-orange);
+            font-size: 32px;
+            font-weight: 800;
+            display: inline-block;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .bump { transform: scale(1.4); }
+
+        .circles-row { display: flex; justify-content: center; gap: 12px; margin-top: 10px; }
+
+        .circle { 
+            width: 45px; 
+            height: 45px; 
+            border-radius: 50%; 
+            background: var(--circle-empty); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: white; 
+            font-size: 24px;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
+
+        .circle.active { 
+            background: var(--know-orange); 
+            transform: scale(1.15);
+            box-shadow: 0 4px 15px rgba(255, 165, 0, 0.5);
+        }
+
+        .quiz-btn { 
+            margin-top: 40px; 
+            padding: 16px 32px; 
+            background: var(--know-orange); 
+            color: white; 
+            border: none; 
+            border-radius: 50px; 
+            font-size: 18px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: transform 0.2s;
+        }
+
+        .quiz-btn:active { transform: scale(0.95); }
+
+        /* The Message Style - Positioned under the button */
+        .status-msg { 
+            margin-top: 25px; 
+            color: var(--know-orange); 
+            font-size: 16px; 
+            font-weight: 600;
+            height: 24px; 
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<div class="streak-card">
+    <h2>Friendship Streak</h2>
+    
+    <div class="streak-stats">
+         <span id="day-number">0</span> Day Streak
+    </div>
+
+    <div class="circles-row" id="streak-circles"></div>
+    
+    <button class="quiz-btn" onclick="finishQuiz()">Finish Today's Quiz</button>
+    
+    <div class="status-msg" id="msg"></div>
+</div>
+
+<script>
+    function renderCircles() {
+        const row = document.getElementById('streak-circles');
+        row.innerHTML = '';
+        for (let i = 1; i <= 7; i++) {
+            const c = document.createElement('div');
+            c.className = 'circle';
+            c.id = `circle-${i}`;
+            row.appendChild(c);
+        }
+    }
+
+    function finishQuiz() {
+        const currentUser = "user1"; 
+
+        fetch('/complete_quiz', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ friendship_id: "user1_user2", user_id: currentUser })
+        })
+        .then(res => res.json())
+        .then(data => {
+            // Updates the message under the button
+            document.getElementById('msg').innerText = data.message;
+            
+            const dayDisplay = document.getElementById('day-number');
+            dayDisplay.innerText = data.streak_count;
+
+            if (data.streak_increased) {
+                dayDisplay.classList.add('bump');
+                setTimeout(() => dayDisplay.classList.remove('bump'), 300);
+                updateCircles(data.streak_count);
+            }
+        });
+    }
+
+    function updateCircles(count) {
+        for (let i = 1; i <= count; i++) {
+            const circle = document.getElementById(`circle-${i}`);
+            if (circle && !circle.classList.contains('active')) {
+                circle.classList.add('active');
+                circle.innerHTML = '★'; 
+            }
+        }
+    }
+
+    renderCircles();
+</script>
+</body>
+</html>
