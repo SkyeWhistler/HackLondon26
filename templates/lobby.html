@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Quiz</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
+        body { background: linear-gradient(135deg, #2a1f4c, #4a3b7d); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #ffffff; }
+        .card { background-color: #1c1433; padding: 40px; border-radius: 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 90%; max-width: 350px; }
+        h1 { margin-bottom: 30px; font-size: 24px; font-weight: 600; }
+        
+        /* Styled specifically for the dark theme */
+        input { 
+            width: 100%; 
+            padding: 15px; 
+            margin-bottom: 20px; 
+            border-radius: 12px; 
+            border: 2px solid #342654; 
+            background: #2a1f4c; 
+            color: white; 
+            font-size: 16px; 
+            outline: none; 
+            transition: border-color 0.3s; 
+        }
+        input:focus { border-color: #8c7ae6; }
+        
+        button { 
+            width: 100%; 
+            padding: 15px; 
+            background: #3b82f6; 
+            color: white; 
+            border: none; 
+            border-radius: 12px; 
+            font-size: 18px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: background-color 0.2s; 
+        }
+        button:hover { background: #2563eb; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Join the Quiz</h1>
+        <form action="/start" method="GET">
+            <input type="text" name="player" placeholder="Enter your nickname" required autocomplete="off">
+            <button type="submit">Start Playing</button>
+        </form>
+    </div>
+</body>
+</html>

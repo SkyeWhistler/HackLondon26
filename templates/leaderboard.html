@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
+        body { background: linear-gradient(135deg, #2a1f4c, #4a3b7d); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #ffffff; padding: 20px; }
+        .card { background-color: #1c1433; padding: 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; max-width: 400px; }
+        h1 { text-align: center; margin-bottom: 30px; font-size: 24px; }
+        
+        /* Leaderboard styling */
+        .leaderboard-row { display: flex; justify-content: space-between; padding: 15px; margin-bottom: 10px; border-radius: 12px; background: #342654; }
+        
+        /* Highlights the current player in blue */
+        .leaderboard-row.current { background: #3b82f6; font-weight: bold; }
+        
+        .actions { text-align: center; margin-top: 30px; display: flex; gap: 10px; justify-content: center; }
+        button, a.btn { padding: 12px 24px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; transition: opacity 0.2s; }
+        button:hover, a.btn:hover { opacity: 0.8; }
+        .btn-refresh { background: #7ac16c; color: white; }
+        .btn-restart { background: #e74c3c; color: white; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Live Leaderboard 🏆</h1>
+        
+        {% for name, pts in leaderboard %}
+            <div class="leaderboard-row {% if name == current_player %}current{% endif %}">
+                <span>#{{ loop.index }} {{ name }}</span>
+                <span>{{ pts }} pts</span>
+            </div>
+        {% endfor %}
+        
+        <div class="actions">
+            <button class="btn btn-refresh" onclick="window.location.reload()">Refresh</button>
+            <a href="/" class="btn btn-restart">Play Again</a>
+        </div>
+    </div>
+</body>
+</html>
