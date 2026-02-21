@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Student Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@500;600;700&family=Cabinet+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+  :root{
+    --bg:#0e0f14;
+    --surface:#16171f;
+    --surface2:#1e2029;
+    --surface3:#252733;
+    --border:#2e3045;
+    --text:#eeeef5;
+    --muted:#6b6d8a;
+    --red:#ff4d6d;
+    --amber:#ffb830;
+    --green:#2ecc8a;
+    --blue:#4d9fff;
+    --font-display:'Clash Display',sans-serif;
+    --font-body:'Cabinet Grotesk',sans-serif;
+  }
+
+  html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font-body);overflow:hidden}
+
+  /* ── LAYOUT ── */
+  .app{display:grid;grid-template-columns:260px 1fr;grid-template-rows:56px 1fr;height:100vh}
+
+  /* ── HEADER ── */
+  header{
+    grid-column:1/-1;
+    display:flex;align-items:center;gap:16px;
+    padding:0 24px;
+    background:var(--surface);
+    border-bottom:1px solid var(--border);
+  }
+  .logo{font-family:var(--font-display);font-size:18px;font-weight:700;letter-spacing:-.02em}
+  .logo span{color:var(--blue)}
+  .nav-week{display:flex;align-items:center;gap:8px;margin-left:auto}
+  .nav-week button{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:13px;font-family:var(--font-body)}
+  .nav-week button:hover{background:var(--surface3)}
+  #weekLabel{font-weight:700;font-size:14px;min-width:180px;text-align:center}
+  .today-btn{background:var(--blue)!important;border-color:var(--blue)!important;color:#fff!important;font-weight:700}
+
+  /* ── SIDEBAR ── */
+  aside{
+    background:var(--surface);
+    border-right:1px solid var(--border);
+    padding:16px;
+    overflow-y:auto;
+    display:flex;flex-direction:column;gap:16px;
+  }
+
+  .mini-cal{}
+  .mini-cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .mini-cal-header span{font-family:var(--font-display);font-size:13px;font-weight:600}
+  .mini-cal-header button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 6px}
+  .mini-cal-header button:hover{color:var(--text)}
+  .mini-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+  .mini-day-label{font-size:10px;color:var(--muted);text-align:center;padding:2px 0;font-weight:700;letter-spacing:.05em}
+  .mini-day{
+    font-size:11px;text-align:center;padding:4px 2px;border-radius:6px;cursor:pointer;
+    color:var(--muted);transition:background .15s,color .15s;
+  }
+  .mini-day:hover{background:var(--surface3);color:var(--text)}
+  .mini-day.today{background:var(--blue);color:#fff;font-weight:700}
+  .mini-day.selected{background:var(--surface3);color:var(--text);outline:1px solid var(--border)}
+  .mini-day.has-event::after{content:'';display:block;width:4px;height:4px;border-radius:50%;background:var(--blue);margin:1px auto 0}
+  .mini-day.other-month{opacity:.3}
+
+  /* Reminders */
+  .section-title{font-family:var(--font-display);font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+
+  .add-reminder-btn{
+    width:100%;background:var(--surface2);border:1px dashed var(--border);
+    color:var(--muted);border-radius:10px;padding:9px;font-size:13px;
+    cursor:pointer;font-family:var(--font-body);transition:all .15s;
+  }
+  .add-reminder-btn:hover{background:var(--surface3);color:var(--text);border-color:var(--blue)}
+
+  .reminder-list{display:flex;flex-direction:column;gap:6px}
+  .reminder-item{
+    background:var(--surface2);border-radius:10px;padding:10px 12px;
+    border-left:3px solid;position:relative;cursor:pointer;
+  }
+  .reminder-item:hover .reminder-delete{opacity:1}
+  .reminder-item.red{border-color:var(--red)}
+  .reminder-item.amber{border-color:var(--amber)}
+  .reminder-item.green{border-color:var(--green)}
+  .reminder-title{font-size:13px;font-weight:700;margin-bottom:2px}
+  .reminder-time{font-size:11px;color:var(--muted)}
+  .reminder-delete{
+    position:absolute;top:8px;right:8px;background:none;border:none;
+    color:var(--muted);cursor:pointer;font-size:14px;opacity:0;transition:opacity .15s;
+  }
+  .reminder-delete:hover{color:var(--red)}
+
+  .priority-legend{display:flex;flex-direction:column;gap:6px}
+  .legend-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+  .legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+  /* ── MAIN CALENDAR ── */
+  main{overflow:hidden;display:flex;flex-direction:column}
+
+  .cal-header{
+    display:grid;padding:0 0 0 56px;
+    border-bottom:1px solid var(--border);
+    background:var(--surface);
+  }
+  .cal-header-inner{display:grid;grid-template-columns:repeat(7,1fr)}
+  .day-header{
+    padding:10px 8px;text-align:center;
+    border-right:1px solid var(--border);
+  }
+  .day-header:last-child{border-right:none}
+  .day-header .dow{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+  .day-header .dom{font-size:20px;font-family:var(--font-display);font-weight:700;margin-top:2px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;margin:4px auto 0}
+  .day-header.today-col .dom{background:var(--blue);color:#fff}
+
+  .cal-body{flex:1;overflow-y:auto;position:relative;display:grid;grid-template-columns:56px 1fr}
+
+  /* Time gutter */
+  .time-gutter{position:relative}
+  .time-label{
+    position:absolute;right:8px;font-size:10px;color:var(--muted);
+    transform:translateY(-50%);font-weight:600;letter-spacing:.03em;
+  }
+
+  /* Grid */
+  .cal-grid{
+    display:grid;grid-template-columns:repeat(7,1fr);
+    position:relative;border-left:1px solid var(--border);
+  }
+  .hour-row{
+    position:absolute;left:0;right:0;border-top:1px solid var(--border);
+    pointer-events:none;
+  }
+  .hour-row.half{border-top:1px dashed rgba(255,255,255,.04)}
+
+  .day-col{
+    border-right:1px solid var(--border);position:relative;
+    cursor:pointer;
+  }
+  .day-col:last-child{border-right:none}
+  .day-col:hover .col-hover{opacity:1}
+  .col-hover{
+    position:absolute;inset:0;background:rgba(77,159,255,.03);
+    opacity:0;pointer-events:none;transition:opacity .15s;
+  }
+
+  /* Events */
+  .cal-event{
+    position:absolute;left:3px;right:3px;
+    border-radius:8px;padding:4px 8px;
+    font-size:12px;font-weight:700;cursor:pointer;
+    overflow:hidden;border-left:3px solid;
+    transition:filter .15s,transform .15s;
+    z-index:2;
+  }
+  .cal-event:hover{filter:brightness(1.15);transform:scaleX(1.01)}
+  .cal-event.red{background:rgba(255,77,109,.18);border-color:var(--red);color:#ffb3c1}
+  .cal-event.amber{background:rgba(255,184,48,.15);border-color:var(--amber);color:#ffe4a0}
+  .cal-event.green{background:rgba(46,204,138,.15);border-color:var(--green);color:#a0ffd6}
+  .cal-event .ev-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cal-event .ev-time{font-size:10px;opacity:.7;font-weight:500}
+  .cal-event .ev-delete{
+    position:absolute;top:3px;right:4px;background:none;border:none;
+    color:inherit;cursor:pointer;opacity:0;font-size:12px;transition:opacity .15s;
+    padding:0;
+  }
+  .cal-event:hover .ev-delete{opacity:1}
+
+  /* Current time line */
+  .now-line{
+    position:absolute;left:0;right:0;height:2px;
+    background:var(--red);z-index:10;pointer-events:none;
+  }
+  .now-line::before{
+    content:'';position:absolute;left:-4px;top:50%;transform:translateY(-50%);
+    width:8px;height:8px;border-radius:50%;background:var(--red);
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);
+    z-index:100;display:flex;align-items:center;justify-content:center;
+    opacity:0;pointer-events:none;transition:opacity .2s;
+  }
+  .modal-overlay.open{opacity:1;pointer-events:all}
+  .modal{
+    background:var(--surface);border:1px solid var(--border);border-radius:20px;
+    padding:28px;width:100%;max-width:400px;
+    transform:translateY(16px);transition:transform .2s;
+  }
+  .modal-overlay.open .modal{transform:translateY(0)}
+  .modal h3{font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:20px}
+  .form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+  .form-group label{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+  .form-group input,.form-group select,.form-group textarea{
+    background:var(--surface2);border:1px solid var(--border);border-radius:10px;
+    padding:10px 14px;color:var(--text);font-size:14px;font-family:var(--font-body);
+    outline:none;transition:border-color .15s;
+  }
+  .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--blue)}
+  .form-group textarea{resize:vertical;min-height:60px}
+  .form-group select option{background:var(--surface2)}
+  .priority-btns{display:flex;gap:8px}
+  .priority-btn{
+    flex:1;padding:8px;border-radius:10px;border:2px solid transparent;
+    font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;font-family:var(--font-body);
+  }
+  .priority-btn.red{background:rgba(255,77,109,.15);color:var(--red)}
+  .priority-btn.amber{background:rgba(255,184,48,.12);color:var(--amber)}
+  .priority-btn.green{background:rgba(46,204,138,.12);color:var(--green)}
+  .priority-btn.selected.red{border-color:var(--red)}
+  .priority-btn.selected.amber{border-color:var(--amber)}
+  .priority-btn.selected.green{border-color:var(--green)}
+  .modal-actions{display:flex;gap:8px;margin-top:20px}
+  .btn-cancel{flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:10px;padding:11px;cursor:pointer;font-family:var(--font-body);font-size:14px}
+  .btn-cancel:hover{color:var(--text)}
+  .btn-save{flex:2;background:var(--blue);border:none;color:#fff;border-radius:10px;padding:11px;cursor:pointer;font-family:var(--font-display);font-size:14px;font-weight:600}
+  .btn-save:hover{filter:brightness(1.1)}
+
+  /* scrollbar */
+  ::-webkit-scrollbar{width:4px;height:4px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- HEADER -->
+  <header>
+    <div class="logo">Study<span>Planner</span></div>
+    <div class="nav-week">
+      <button onclick="changeWeek(-1)">&#8249;</button>
+      <span id="weekLabel"></span>
+      <button onclick="changeWeek(1)">&#8250;</button>
+      <button class="today-btn" onclick="goToToday()">Today</button>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside>
+    <!-- Mini calendar -->
+    <div class="mini-cal">
+      <div class="mini-cal-header">
+        <button onclick="miniPrev()">&#8249;</button>
+        <span id="miniMonthLabel"></span>
+        <button onclick="miniNext()">&#8250;</button>
+      </div>
+      <div class="mini-grid" id="miniGrid"></div>
+    </div>
+
+    <!-- Reminders -->
+    <div>
+      <div class="section-title">Reminders</div>
+      <div class="reminder-list" id="reminderList"></div>
+      <button class="add-reminder-btn" onclick="openReminderModal()" style="margin-top:8px">+ Add Reminder</button>
+    </div>
+
+    <!-- Priority legend -->
+    <div>
+      <div class="section-title">Priority</div>
+      <div class="priority-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> 🔴 High — urgent, do first</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div> 🟡 Medium — important</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> 🟢 Low — can wait</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main>
+    <div class="cal-header">
+      <div class="cal-header-inner" id="calHeader"></div>
+    </div>
+    <div class="cal-body">
+      <div class="time-gutter" id="timeGutter"></div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+  </main>
+</div>
+
+<!-- EVENT MODAL -->
+<div class="modal-overlay" id="eventModal">
+  <div class="modal">
+    <h3 id="modalTitle">Add Study Block</h3>
+    <div class="form-group">
+      <label>What are you studying?</label>
+      <input type="text" id="evTitle" placeholder="e.g. Maths revision, Essay draft..." />
+    </div>
+    <div class="form-group">
+      <label>Date</label>
+      <input type="date" id="evDate" />
+    </div>
+    <div class="form-group">
+      <label>Start time</label>
+      <select id="evStart"></select>
+    </div>
+    <div class="form-group">
+      <label>Duration</label>
+      <select id="evDuration">
+        <option value="0.5">30 minutes</option>
+        <option value="1" selected>1 hour</option>
+        <option value="1.5">1.5 hours</option>
+        <option value="2">2 hours</option>
+        <option value="3">3 hours</option>
+        <option value="4">4 hours</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Priority</label>
+      <div class="priority-btns">
+        <button class="priority-btn red selected" onclick="selectPriority('red')">🔴 High</button>
+        <button class="priority-btn amber" onclick="selectPriority('amber')">🟡 Medium</button>
+        <button class="priority-btn green" onclick="selectPriority('green')">🟢 Low</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('eventModal')">Cancel</button>
+      <button class="btn-save" onclick="saveEvent()">Save Block</button>
+    </div>
+  </div>
+</div>
+
+<!-- REMINDER MODAL -->
+<div class="modal-overlay" id="reminderModal">
+  <div class="modal">
+    <h3>Add Reminder</h3>
+    <div class="form-group">
+      <label>Reminder text</label>
+      <input type="text" id="remTitle" placeholder="e.g. Submit assignment by midnight" />
+    </div>
+    <div class="form-group">
+      <label>Date & Time</label>
+      <input type="datetime-local" id="remDateTime" />
+    </div>
+    <div class="form-group">
+      <label>Priority</label>
+      <div class="priority-btns">
+        <button class="priority-btn red selected" onclick="selectRemPriority('red')">🔴 High</button>
+        <button class="priority-btn amber" onclick="selectRemPriority('amber')">🟡 Medium</button>
+        <button class="priority-btn green" onclick="selectRemPriority('green')">🟢 Low</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('reminderModal')">Cancel</button>
+      <button class="btn-save" onclick="saveReminder()">Save Reminder</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let events = JSON.parse(localStorage.getItem('sp_events') || '[]')
+let reminders = JSON.parse(localStorage.getItem('sp_reminders') || '[]')
+let currentWeekStart = getWeekStart(new Date())
+let miniMonth = new Date()
+let selectedPriority = 'red'
+let selectedRemPriority = 'red'
+let editingEventId = null
+let clickedDate = null
+let clickedHour = null
+
+const HOURS = 24
+const HOUR_HEIGHT = 60 // px per hour
+const START_HOUR = 6   // show from 6am
+
+function save() {
+  localStorage.setItem('sp_events', JSON.stringify(events))
+  localStorage.setItem('sp_reminders', JSON.stringify(reminders))
+}
+
+// ── DATE HELPERS ───────────────────────────────────────────────────────────────
+function getWeekStart(d) {
+  const date = new Date(d)
+  const day = date.getDay()
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1)
+  date.setDate(diff)
+  date.setHours(0,0,0,0)
+  return date
+}
+
+function addDays(d, n) {
+  const r = new Date(d)
+  r.setDate(r.getDate() + n)
+  return r
+}
+
+function sameDay(a, b) {
+  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate()
+}
+
+function fmt(d) {
+  return d.toISOString().split('T')[0]
+}
+
+function toDateObj(str) {
+  return new Date(str + 'T00:00:00')
+}
+
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
+
+// ── RENDER WEEK HEADER ─────────────────────────────────────────────────────────
+function renderHeader() {
+  const header = document.getElementById('calHeader')
+  const today = new Date()
+  let html = ''
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(currentWeekStart, i)
+    const isToday = sameDay(d, today)
+    html += `<div class="day-header ${isToday ? 'today-col' : ''}">
+      <div class="dow">${DAYS[i]}</div>
+      <div class="dom">${d.getDate()}</div>
+    </div>`
+  }
+  header.innerHTML = html
+
+  // Week label
+  const end = addDays(currentWeekStart, 6)
+  document.getElementById('weekLabel').textContent =
+    `${MONTHS[currentWeekStart.getMonth()]} ${currentWeekStart.getDate()} – ${currentWeekStart.getMonth() !== end.getMonth() ? MONTHS[end.getMonth()] + ' ' : ''}${end.getDate()}, ${end.getFullYear()}`
+}
+
+// ── RENDER TIME GUTTER ─────────────────────────────────────────────────────────
+function renderGutter() {
+  const g = document.getElementById('timeGutter')
+  const totalHours = HOURS - START_HOUR
+  g.style.height = (totalHours * HOUR_HEIGHT) + 'px'
+  let html = ''
+  for (let h = START_HOUR; h < HOURS; h++) {
+    const top = (h - START_HOUR) * HOUR_HEIGHT
+    const label = h === 0 ? '12 AM' : h < 12 ? `${h} AM` : h === 12 ? '12 PM' : `${h-12} PM`
+    html += `<div class="time-label" style="top:${top}px">${label}</div>`
+  }
+  g.innerHTML = html
+}
+
+// ── RENDER GRID ────────────────────────────────────────────────────────────────
+function renderGrid() {
+  const grid = document.getElementById('calGrid')
+  const totalHours = HOURS - START_HOUR
+  const gridHeight = totalHours * HOUR_HEIGHT
+  grid.style.height = gridHeight + 'px'
+
+  let html = ''
+
+  // Hour lines
+  for (let h = 0; h <= totalHours; h++) {
+    const top = h * HOUR_HEIGHT
+    html += `<div class="hour-row" style="top:${top}px"></div>`
+    if (h < totalHours) {
+      html += `<div class="hour-row half" style="top:${top + HOUR_HEIGHT/2}px"></div>`
+    }
+  }
+
+  // Day columns
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(currentWeekStart, i)
+    const dateStr = fmt(d)
+    html += `<div class="day-col" id="col_${i}" onclick="handleColClick(event, '${dateStr}')">
+      <div class="col-hover"></div>
+    </div>`
+  }
+
+  grid.innerHTML = html
+
+  // Events
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(currentWeekStart, i)
+    const dateStr = fmt(d)
+    const col = document.getElementById('col_' + i)
+    const dayEvents = events.filter(e => e.date === dateStr)
+    dayEvents.forEach(ev => {
+      const el = createEventEl(ev)
+      col.appendChild(el)
+    })
+  }
+
+  // Current time line
+  renderNowLine()
+}
+
+function createEventEl(ev) {
+  const startH = ev.startHour
+  const dur = ev.duration
+  const top = (startH - START_HOUR) * HOUR_HEIGHT
+  const height = dur * HOUR_HEIGHT - 4
+
+  const el = document.createElement('div')
+  el.className = `cal-event ${ev.priority}`
+  el.style.top = top + 'px'
+  el.style.height = Math.max(height, 22) + 'px'
+
+  const startLabel = formatHour(startH)
+  const endLabel = formatHour(startH + dur)
+
+  el.innerHTML = `
+    <div class="ev-title">${ev.title}</div>
+    <div class="ev-time">${startLabel} – ${endLabel}</div>
+    <button class="ev-delete" onclick="deleteEvent('${ev.id}', event)">✕</button>
+  `
+  el.addEventListener('click', (e) => {
+    if (e.target.classList.contains('ev-delete')) return
+    openEditEvent(ev.id)
+  })
+  return el
+}
+
+function formatHour(h) {
+  const whole = Math.floor(h)
+  const mins = (h - whole) * 60
+  const period = whole < 12 ? 'AM' : 'PM'
+  const displayH = whole === 0 ? 12 : whole > 12 ? whole - 12 : whole
+  return `${displayH}:${mins === 0 ? '00' : mins}${period}`
+}
+
+function renderNowLine() {
+  document.querySelectorAll('.now-line').forEach(el => el.remove())
+  const now = new Date()
+  const today = new Date()
+
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(currentWeekStart, i)
+    if (sameDay(d, today)) {
+      const col = document.getElementById('col_' + i)
+      if (!col) return
+      const h = now.getHours() + now.getMinutes() / 60
+      if (h < START_HOUR) return
+      const top = (h - START_HOUR) * HOUR_HEIGHT
+      const line = document.createElement('div')
+      line.className = 'now-line'
+      line.style.top = top + 'px'
+      col.appendChild(line)
+      break
+    }
+  }
+}
+
+// ── MINI CALENDAR ──────────────────────────────────────────────────────────────
+function renderMiniCal() {
+  const year = miniMonth.getFullYear()
+  const month = miniMonth.getMonth()
+  document.getElementById('miniMonthLabel').textContent = `${MONTHS[month].slice(0,3)} ${year}`
+
+  const firstDay = new Date(year, month, 1).getDay()
+  const daysInMonth = new Date(year, month+1, 0).getDate()
+  const today = new Date()
+
+  let html = ''
+  const labels = ['M','T','W','T','F','S','S']
+  labels.forEach(l => { html += `<div class="mini-day-label">${l}</div>` })
+
+  // offset (Mon=0)
+  let offset = firstDay - 1
+  if (offset < 0) offset = 6
+  for (let i = 0; i < offset; i++) {
+    const prevDate = new Date(year, month, -offset + i + 1)
+    html += `<div class="mini-day other-month">${prevDate.getDate()}</div>`
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(year, month, d)
+    const dateStr = fmt(date)
+    const isToday = sameDay(date, today)
+    const isSelected = sameDay(date, currentWeekStart) || (date >= currentWeekStart && date <= addDays(currentWeekStart, 6))
+    const hasEvent = events.some(e => e.date === dateStr)
+    const cls = [
+      'mini-day',
+      isToday ? 'today' : '',
+      isSelected ? 'selected' : '',
+      hasEvent ? 'has-event' : ''
+    ].join(' ')
+    html += `<div class="${cls}" onclick="jumpToDate('${dateStr}')">${d}</div>`
+  }
+
+  document.getElementById('miniGrid').innerHTML = html
+}
+
+function miniPrev() { miniMonth.setMonth(miniMonth.getMonth()-1); renderMiniCal() }
+function miniNext() { miniMonth.setMonth(miniMonth.getMonth()+1); renderMiniCal() }
+function jumpToDate(dateStr) {
+  currentWeekStart = getWeekStart(toDateObj(dateStr))
+  renderAll()
+}
+
+// ── REMINDERS ─────────────────────────────────────────────────────────────────
+function renderReminders() {
+  const list = document.getElementById('reminderList')
+  if (reminders.length === 0) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:8px 0">No reminders yet</div>'
+    return
+  }
+  const sorted = [...reminders].sort((a,b) => new Date(a.datetime) - new Date(b.datetime))
+  list.innerHTML = sorted.map(r => {
+    const dt = new Date(r.datetime)
+    const label = dt.toLocaleDateString('en-GB', {day:'numeric',month:'short'}) + ' ' + dt.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'})
+    return `<div class="reminder-item ${r.priority}">
+      <div class="reminder-title">${r.title}</div>
+      <div class="reminder-time">⏰ ${label}</div>
+      <button class="reminder-delete" onclick="deleteReminder('${r.id}')">✕</button>
+    </div>`
+  }).join('')
+}
+
+function deleteReminder(id) {
+  reminders = reminders.filter(r => r.id !== id)
+  save(); renderReminders(); renderMiniCal()
+}
+
+// ── MODAL HELPERS ──────────────────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open') }
+function closeModal(id) { document.getElementById(id).classList.remove('open') }
+
+// Click outside closes
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open')
+  })
+})
+
+// ── EVENT MODAL ────────────────────────────────────────────────────────────────
+function populateTimeSelect() {
+  const sel = document.getElementById('evStart')
+  sel.innerHTML = ''
+  for (let h = 0; h < 24; h++) {
+    for (let m = 0; m < 60; m += 30) {
+      const val = h + m/60
+      const label = formatHour(val)
+      sel.innerHTML += `<option value="${val}">${label}</option>`
+    }
+  }
+}
+
+function handleColClick(e, dateStr) {
+  if (e.target.classList.contains('ev-delete') || e.target.closest('.cal-event')) return
+  const col = document.getElementById('col_' + [...document.querySelectorAll('.day-col')].findIndex(c => c === e.currentTarget))
+  const rect = e.currentTarget.getBoundingClientRect()
+  const relY = e.clientY - rect.top
+  const hour = START_HOUR + relY / HOUR_HEIGHT
+  const snapped = Math.round(hour * 2) / 2 // snap to 30min
+
+  clickedDate = dateStr
+  clickedHour = Math.max(0, Math.min(23.5, snapped))
+
+  openNewEvent(dateStr, clickedHour)
+}
+
+function openNewEvent(dateStr, startHour) {
+  editingEventId = null
+  selectedPriority = 'red'
+  document.getElementById('modalTitle').textContent = 'Add Study Block'
+  document.getElementById('evTitle').value = ''
+  document.getElementById('evDate').value = dateStr
+  populateTimeSelect()
+  document.getElementById('evStart').value = startHour || 9
+  document.getElementById('evDuration').value = '1'
+  updatePriorityBtns()
+  openModal('eventModal')
+}
+
+function openEditEvent(id) {
+  const ev = events.find(e => e.id === id)
+  if (!ev) return
+  editingEventId = id
+  selectedPriority = ev.priority
+  document.getElementById('modalTitle').textContent = 'Edit Study Block'
+  document.getElementById('evTitle').value = ev.title
+  document.getElementById('evDate').value = ev.date
+  populateTimeSelect()
+  document.getElementById('evStart').value = ev.startHour
+  document.getElementById('evDuration').value = ev.duration
+  updatePriorityBtns()
+  openModal('eventModal')
+}
+
+function selectPriority(p) {
+  selectedPriority = p
+  updatePriorityBtns()
+}
+
+function updatePriorityBtns() {
+  document.querySelectorAll('#eventModal .priority-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.classList.contains(selectedPriority))
+  })
+}
+
+function saveEvent() {
+  const title = document.getElementById('evTitle').value.trim()
+  if (!title) { document.getElementById('evTitle').focus(); return }
+  const date = document.getElementById('evDate').value
+  const startHour = parseFloat(document.getElementById('evStart').value)
+  const duration = parseFloat(document.getElementById('evDuration').value)
+
+  if (editingEventId) {
+    const ev = events.find(e => e.id === editingEventId)
+    if (ev) { ev.title = title; ev.date = date; ev.startHour = startHour; ev.duration = duration; ev.priority = selectedPriority }
+  } else {
+    events.push({ id: Date.now().toString(), title, date, startHour, duration, priority: selectedPriority })
+  }
+
+  save(); closeModal('eventModal'); renderAll()
+}
+
+function deleteEvent(id, e) {
+  e.stopPropagation()
+  events = events.filter(ev => ev.id !== id)
+  save(); renderAll()
+}
+
+// ── REMINDER MODAL ─────────────────────────────────────────────────────────────
+function openReminderModal() {
+  selectedRemPriority = 'red'
+  document.getElementById('remTitle').value = ''
+  const now = new Date()
+  now.setMinutes(0,0,0)
+  document.getElementById('remDateTime').value = now.toISOString().slice(0,16)
+  updateRemPriorityBtns()
+  openModal('reminderModal')
+}
+
+function selectRemPriority(p) {
+  selectedRemPriority = p
+  updateRemPriorityBtns()
+}
+
+function updateRemPriorityBtns() {
+  document.querySelectorAll('#reminderModal .priority-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.classList.contains(selectedRemPriority))
+  })
+}
+
+function saveReminder() {
+  const title = document.getElementById('remTitle').value.trim()
+  if (!title) { document.getElementById('remTitle').focus(); return }
+  const datetime = document.getElementById('remDateTime').value
+  reminders.push({ id: Date.now().toString(), title, datetime, priority: selectedRemPriority })
+  save(); closeModal('reminderModal'); renderReminders(); renderMiniCal()
+}
+
+// ── WEEK NAV ───────────────────────────────────────────────────────────────────
+function changeWeek(dir) {
+  currentWeekStart = addDays(currentWeekStart, dir * 7)
+  miniMonth = new Date(currentWeekStart)
+  renderAll()
+}
+
+function goToToday() {
+  currentWeekStart = getWeekStart(new Date())
+  miniMonth = new Date()
+  renderAll()
+}
+
+// ── SCROLL TO CURRENT HOUR ─────────────────────────────────────────────────────
+function scrollToCurrent() {
+  const body = document.querySelector('.cal-body')
+  const now = new Date()
+  const h = now.getHours() + now.getMinutes()/60
+  const top = Math.max(0, (h - START_HOUR - 2)) * HOUR_HEIGHT
+  body.scrollTop = top
+}
+
+// ── RENDER ALL ─────────────────────────────────────────────────────────────────
+function renderAll() {
+  renderHeader()
+  renderGutter()
+  renderGrid()
+  renderMiniCal()
+  renderReminders()
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────────
+renderAll()
+scrollToCurrent()
+setInterval(renderNowLine, 60000) // update now line every minute
+</script>
+</body>
+</html>
