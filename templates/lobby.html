@@ -1,52 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Join Quiz</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
-        body { background: linear-gradient(135deg, #2a1f4c, #4a3b7d); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #ffffff; }
-        .card { background-color: #1c1433; padding: 40px; border-radius: 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 90%; max-width: 350px; }
-        h1 { margin-bottom: 30px; font-size: 24px; font-weight: 600; }
-        
-        /* Styled specifically for the dark theme */
-        input { 
-            width: 100%; 
-            padding: 15px; 
-            margin-bottom: 20px; 
-            border-radius: 12px; 
-            border: 2px solid #342654; 
-            background: #2a1f4c; 
-            color: white; 
-            font-size: 16px; 
-            outline: none; 
-            transition: border-color 0.3s; 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, sans-serif;
         }
-        input:focus { border-color: #8c7ae6; }
-        
-        button { 
-            width: 100%; 
-            padding: 15px; 
-            background: #3b82f6; 
-            color: white; 
-            border: none; 
-            border-radius: 12px; 
-            font-size: 18px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            transition: background-color 0.2s; 
+
+        body {
+            background: linear-gradient(135deg, #2a1f4c, #4a3b7d);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #ffffff;
         }
-        button:hover { background: #2563eb; }
+
+        .card {
+            background-color: #1c1433;
+            padding: 40px;
+            border-radius: 24px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 380px;
+        }
+
+        h1 {
+            margin-bottom: 8px;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: #b0a8cc;
+            font-size: 14px;
+            margin-bottom: 28px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 24px;
+            border-radius: 12px;
+            border: 2px solid #342654;
+            background: #2a1f4c;
+            color: white;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #8c7ae6;
+        }
+
+        .avatar-label {
+            font-size: 13px;
+            color: #b0a8cc;
+            text-align: left;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+
+        .avatar-option {
+            font-size: 28px;
+            background: #2a1f4c;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 10px 0;
+            cursor: pointer;
+            transition: border-color 0.2s, transform 0.15s, background 0.2s;
+            user-select: none;
+        }
+
+        .avatar-option:hover {
+            background: #342654;
+            transform: scale(1.1);
+        }
+
+        .avatar-option.selected {
+            border-color: #8c7ae6;
+            background: #342654;
+            transform: scale(1.15);
+            box-shadow: 0 0 12px rgba(140, 122, 230, 0.5);
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 15px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        button[type="submit"]:hover {
+            background: #2563eb;
+        }
+
+        button[type="submit"]:active {
+            transform: scale(0.98);
+        }
     </style>
 </head>
+
 <body>
     <div class="card">
-        <h1>Join the Quiz</h1>
+        <h1>Join the Quiz 🎓</h1>
+        <p class="subtitle">Pick an avatar and enter your nickname</p>
         <form action="/start" method="GET">
             <input type="text" name="player" placeholder="Enter your nickname" required autocomplete="off">
-            <button type="submit">Start Playing</button>
+
+            <div class="avatar-label">Choose your avatar</div>
+            <div class="avatar-grid" id="avatar-grid">
+                <span class="avatar-option" data-emoji="🦊">🦊</span>
+                <span class="avatar-option" data-emoji="🐼">🐼</span>
+                <span class="avatar-option" data-emoji="🐸">🐸</span>
+                <span class="avatar-option" data-emoji="🦁">🦁</span>
+                <span class="avatar-option" data-emoji="🐯">🐯</span>
+                <span class="avatar-option" data-emoji="🐺">🐺</span>
+                <span class="avatar-option" data-emoji="🦄">🦄</span>
+                <span class="avatar-option" data-emoji="🐙">🐙</span>
+                <span class="avatar-option" data-emoji="🐲">🐲</span>
+                <span class="avatar-option" data-emoji="🤖">🤖</span>
+            </div>
+            <input type="hidden" name="avatar" id="avatar-input" value="🦊">
+
+            <button type="submit">Start Playing →</button>
         </form>
     </div>
+
+    <script>
+        const options = document.querySelectorAll('.avatar-option');
+        const avatarInput = document.getElementById('avatar-input');
+
+        // Select first by default
+        options[0].classList.add('selected');
+
+        options.forEach(opt => {
+            opt.addEventListener('click', () => {
+                options.forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                avatarInput.value = opt.dataset.emoji;
+            });
+        });
+    </script>
 </body>
+
 </html>

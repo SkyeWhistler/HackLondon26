@@ -1,8 +1,8 @@
-from flask import Flask, request, redirect, render_template
+from flask import Flask, request, redirect, render_template, jsonify
 
 app = Flask(__name__)
 
-leaderboard = {}
+live_progress = {}
 
 questions = [
     {
@@ -14,40 +14,65 @@ questions = [
         "q": "Which cellular organelle is the primary site of cellular respiration?",
         "opts": ["Nucleus", "Mitochondria", "Ribosome", "Chloroplast"],
         "ans": 1
+    },
+    {
+        "q": "What type of bond involves the sharing of electron pairs between atoms?",
+        "opts": ["Ionic bond", "Hydrogen bond", "Covalent bond", "Metallic bond"],
+        "ans": 2
     }
 ]
 
 @app.route("/")
 def lobby():
-    # Looks for templates/lobby.html
     return render_template("lobby.html")
+
+@app.route("/progress")
+def get_progress():
+    return jsonify(live_progress)
+
+@app.route("/leaderboard-data")
+def get_leaderboard_data():
+    return jsonify({
+        player: {
+            "score": info.get("score", 0),
+            "avatar": info.get("avatar", "🦊"),
+            "finished": info.get("finished", False)
+        }
+        for player, info in live_progress.items()
+    })
 
 @app.route("/start")
 def start_quiz():
     player = request.args.get("player", "Anonymous")
-    return redirect(f"/q/0?player={player}&score=0")
+    avatar = request.args.get("avatar", "🦊")
+    return redirect(f"/q/0?player={player}&score=0&avatar={avatar}")
 
 @app.route("/q/<int:q_id>")
 def serve_question(q_id):
     score = int(request.args.get("score", 0))
     player = request.args.get("player", "Anonymous")
-    
-    # If quiz is over, show leaderboard
+    avatar = request.args.get("avatar", "🦊")
+
     if q_id >= len(questions):
-        leaderboard[player] = score
-        sorted_board = sorted(leaderboard.items(), key=lambda x: x[1], reverse=True)
+        live_progress[player] = {"pct": 100, "avatar": avatar, "score": score, "finished": True}
+        sorted_board = sorted(
+            [(p, {"score": i.get("score", 0), "avatar": i.get("avatar", "🦊"), "finished": i.get("finished", False)})
+             for p, i in live_progress.items()],
+            key=lambda x: x[1]["score"], reverse=True
+        )
         return render_template("leaderboard.html", leaderboard=sorted_board, current_player=player)
 
-    # Otherwise, serve the current question
-    current_q = questions[q_id]
     progress_percentage = (q_id / len(questions)) * 100
-    
-    return render_template("quiz.html", 
-                           question=current_q, 
-                           progress=progress_percentage, 
-                           score=score, 
-                           player=player, 
-                           next_q_id=q_id + 1)
+    live_progress[player] = {"pct": progress_percentage, "avatar": avatar, "score": score, "finished": False}
+
+    return render_template("quiz.html",
+                           question=questions[q_id],
+                           progress=progress_percentage,
+                           score=score,
+                           player=player,
+                           avatar=avatar,
+                           next_q_id=q_id + 1,
+                           live_progress=live_progress)
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', debug=True, port=5000)
+    app.run(host='0.0.0.0', debug=True, port=5001)

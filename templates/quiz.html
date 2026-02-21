@@ -1,36 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hackathon Quiz</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
-        body { background: linear-gradient(135deg, #2a1f4c, #4a3b7d); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #ffffff; }
-        .quiz-app { width: 100%; max-width: 400px; background-color: #1c1433; border-radius: 24px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); min-height: 600px; display: flex; flex-direction: column; }
-        .quiz-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; margin-top: 10px; }
-        .player-badge { background: #342654; padding: 6px 12px; border-radius: 16px; font-size: 14px; font-weight: bold; }
-        .progress-container { flex-grow: 1; background-color: #342654; height: 10px; border-radius: 10px; margin: 0 15px; overflow: hidden; }
-        .progress-bar { background-color: #8c7ae6; height: 100%; border-radius: 10px; width: {{ progress }}%; transition: width 0.3s; }
-        .score-pill { background-color: #3b82f6; padding: 6px 12px; border-radius: 16px; font-weight: bold; font-size: 14px; }
-        .quiz-content h1 { font-size: 20px; line-height: 1.4; margin-bottom: 30px; text-align: center; font-weight: 600; }
-        .options-container { display: flex; flex-direction: column; gap: 15px; }
-        .option-btn { background-color: #382c59; color: #e0dced; border: none; padding: 20px; border-radius: 12px; font-size: 15px; text-align: left; cursor: pointer; transition: background-color 0.2s ease; line-height: 1.3; }
-        .option-btn:active { transform: scale(0.98); }
-        .option-btn.correct { background-color: #7ac16c; color: white; }
-        .option-btn.wrong { background-color: #e74c3c; color: white; }
-        .option-btn:disabled { cursor: not-allowed; opacity: 0.9; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #2a1f4c, #4a3b7d);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #ffffff;
+        }
+
+        .quiz-app {
+            width: 100%;
+            max-width: 400px;
+            background-color: #1c1433;
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .quiz-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            margin-top: 10px;
+        }
+
+        .player-badge {
+            background: #342654;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .progress-container {
+            flex-grow: 1;
+            background-color: #342654;
+            height: 10px;
+            border-radius: 10px;
+            margin: 0 15px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background-color: #8c7ae6;
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+
+        .score-pill {
+            background-color: #3b82f6;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .live-progress-section {
+            margin-top: 24px;
+            margin-bottom: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .live-player-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .live-player-label {
+            font-size: 12px;
+            color: #b0a8cc;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .live-player-bar-track {
+            position: relative;
+            background-color: #342654;
+            height: 10px;
+            border-radius: 10px;
+            overflow: visible;
+        }
+
+        .live-player-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.4s ease;
+            background-color: #8c7ae6;
+        }
+
+        .live-player-bar-fill.is-you {
+            background-color: #3b82f6;
+        }
+
+        .live-player-avatar {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            line-height: 1;
+            transition: left 0.4s ease;
+            pointer-events: none;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+        }
+
+        .quiz-content h1 {
+            font-size: 20px;
+            line-height: 1.4;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background-color: #382c59;
+            color: #e0dced;
+            border: none;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 15px;
+            text-align: left;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            line-height: 1.3;
+        }
+
+        .option-btn:active {
+            transform: scale(0.98);
+        }
+
+        .option-btn.correct {
+            background-color: #7ac16c;
+            color: white;
+        }
+
+        .option-btn.wrong {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.9;
+        }
     </style>
 </head>
+
 <body>
     <div class="quiz-app">
         <header class="quiz-header">
             <div class="player-badge">👤 {{ player }}</div>
             <div class="progress-container">
-                <div class="progress-bar"></div>
+                <div class="progress-bar" style="width: {{ progress }}%;"></div>
             </div>
             <div class="score-pill">★ {{ score }}</div>
         </header>
+        <div class="live-progress-section" id="live-progress-section"></div>
         <main class="quiz-content">
             <h1>{{ question.q }}</h1>
             <div class="options-container" id="options-container"></div>
@@ -43,32 +195,80 @@
         const currentScore = {{ score }};
         const nextQuestionId = {{ next_q_id }};
         const playerName = "{{ player }}";
+        const avatarEmoji = "{{ avatar }}";
         const container = document.getElementById('options-container');
+        const progressSection = document.getElementById('live-progress-section');
 
+        // Answer buttons
         options.forEach((optText, index) => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.innerText = optText;
-            
+
             btn.onclick = () => {
                 const allBtns = document.querySelectorAll('.option-btn');
-                allBtns.forEach(b => b.disabled = true); 
-                
+                allBtns.forEach(b => b.disabled = true);
+
                 let newScore = currentScore;
                 if (index === correctIndex) {
                     btn.classList.add('correct');
                     newScore += 1;
                 } else {
                     btn.classList.add('wrong');
-                    allBtns[correctIndex].classList.add('correct'); 
+                    allBtns[correctIndex].classList.add('correct');
                 }
-                
+
                 setTimeout(() => {
-                    window.location.href = "/q/" + nextQuestionId + "?score=" + newScore + "&player=" + encodeURIComponent(playerName);
+                    window.location.href = "/q/" + nextQuestionId + "?score=" + newScore + "&player=" + encodeURIComponent(playerName) + "&avatar=" + encodeURIComponent(avatarEmoji);
                 }, 1500);
             };
             container.appendChild(btn);
         });
+
+        // Live progress polling
+        function updateProgressBars(data) {
+            for (const [name, info] of Object.entries(data)) {
+                const pct = info.pct;
+                const avatar = info.avatar || '👤';
+                const clampedPct = Math.min(pct, 97);
+                const rowId = 'row-' + name.replace(/[^a-z0-9]/gi, '_');
+                let row = document.getElementById(rowId);
+
+                if (!row) {
+                    row = document.createElement('div');
+                    row.className = 'live-player-row';
+                    row.id = rowId;
+
+                    const isYou = name === playerName;
+                    row.innerHTML = `
+                        <div class="live-player-label">
+                            <span>${avatar} ${name}${isYou ? ' ⭐' : ''}</span>
+                            <span class="pct-label">${Math.round(pct)}%</span>
+                        </div>
+                        <div class="live-player-bar-track">
+                            <div class="live-player-bar-fill ${isYou ? 'is-you' : ''}" style="width:${pct}%"></div>
+                            <span class="live-player-avatar" style="left:${clampedPct}%">${avatar}</span>
+                        </div>`;
+                    progressSection.appendChild(row);
+                } else {
+                    row.querySelector('.live-player-bar-fill').style.width = pct + '%';
+                    row.querySelector('.live-player-avatar').style.left = clampedPct + '%';
+                    row.querySelector('.pct-label').textContent = Math.round(pct) + '%';
+                }
+            }
+        }
+
+        async function pollProgress() {
+            try {
+                const res = await fetch('/progress');
+                const data = await res.json();
+                updateProgressBars(data);
+            } catch (e) { }
+        }
+
+        pollProgress();
+        setInterval(pollProgress, 1500);
     </script>
 </body>
+
 </html>
