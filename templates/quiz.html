@@ -85,7 +85,7 @@
         .live-player-row {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 10px;
         }
 
         .live-player-label {
@@ -98,9 +98,10 @@
         .live-player-bar-track {
             position: relative;
             background-color: #342654;
-            height: 10px;
+            height: 14px;
             border-radius: 10px;
             overflow: visible;
+            margin-top: 10px;
         }
 
         .live-player-bar-fill {
@@ -118,11 +119,11 @@
             position: absolute;
             top: 50%;
             transform: translate(-50%, -50%);
-            font-size: 20px;
+            font-size: 32px;
             line-height: 1;
             transition: left 0.4s ease;
             pointer-events: none;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+            filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
         }
 
         .quiz-content h1 {
@@ -243,7 +244,7 @@
                     row.innerHTML = `
                         <div class="live-player-label">
                             <span>${avatar} ${name}${isYou ? ' ⭐' : ''}</span>
-                            <span class="pct-label">${Math.round(pct)}%</span>
+                            <span class="pct-label">${info.q_num}/${info.total}</span>
                         </div>
                         <div class="live-player-bar-track">
                             <div class="live-player-bar-fill ${isYou ? 'is-you' : ''}" style="width:${pct}%"></div>
@@ -253,7 +254,7 @@
                 } else {
                     row.querySelector('.live-player-bar-fill').style.width = pct + '%';
                     row.querySelector('.live-player-avatar').style.left = clampedPct + '%';
-                    row.querySelector('.pct-label').textContent = Math.round(pct) + '%';
+                    row.querySelector('.pct-label').textContent = info.q_num + '/' + info.total;
                 }
             }
         }

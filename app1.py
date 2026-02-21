@@ -54,7 +54,7 @@ def serve_question(q_id):
     avatar = request.args.get("avatar", "🦊")
 
     if q_id >= len(questions):
-        live_progress[player] = {"pct": 100, "avatar": avatar, "score": score, "finished": True}
+        live_progress[player] = {"pct": 100, "avatar": avatar, "score": score, "finished": True, "q_num": len(questions), "total": len(questions)}
         sorted_board = sorted(
             [(p, {"score": i.get("score", 0), "avatar": i.get("avatar", "🦊"), "finished": i.get("finished", False)})
              for p, i in live_progress.items()],
@@ -63,7 +63,7 @@ def serve_question(q_id):
         return render_template("leaderboard.html", leaderboard=sorted_board, current_player=player)
 
     progress_percentage = (q_id / len(questions)) * 100
-    live_progress[player] = {"pct": progress_percentage, "avatar": avatar, "score": score, "finished": False}
+    live_progress[player] = {"pct": progress_percentage, "avatar": avatar, "score": score, "finished": False, "q_num": q_id, "total": len(questions)}
 
     return render_template("quiz.html",
                            question=questions[q_id],
